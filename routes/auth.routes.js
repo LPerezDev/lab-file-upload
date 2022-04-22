@@ -10,6 +10,9 @@ const saltRounds = 10;
 // Require the User model in order to interact with the database
 const User = require("../models/User.model");
 
+//Require the Cloudinary config file to use File Uploader
+const fileUploader = require('../config/cloudinary.config');
+
 // require (import) middleware functions
 const { isLoggedIn, isLoggedOut } = require("../middleware/route-guard.js");
 
@@ -21,7 +24,7 @@ const { isLoggedIn, isLoggedOut } = require("../middleware/route-guard.js");
 router.get("/signup", isLoggedOut, (req, res) => res.render("auth/signup"));
 
 // .post() route ==> to process form data
-router.post("/signup", isLoggedOut, (req, res, next) => {
+router.post("/signup", isLoggedOut, fileUploader.single('user-profile-picture'), (req, res, next) => {
   const { username, email, password } = req.body;
 
   if (!username || !email || !password) {
@@ -51,7 +54,8 @@ router.post("/signup", isLoggedOut, (req, res, next) => {
         // passwordHash => this is the key from the User model
         //     ^
         //     |            |--> this is placeholder (how we named returning value from the previous method (.hash()))
-        passwordHash: hashedPassword
+        passwordHash: hashedPassword,
+        imageUrl: req.file.path
       });
     })
     .then((userFromDB) => {
